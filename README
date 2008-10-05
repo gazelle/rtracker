@@ -1,0 +1,13 @@
+RTracker is a ruby-based BitTorrent tracker, meant to be used with What.CD's Gazelle (it's dependent on it's database schema), although it can easily be adapted for any sourcecode.
+
+To install, make sure you have
+1) Ruby (I use 1.8.6, although any version should do)
+2) Rubygems
+   -- MySQL gem
+   -- bencode gem
+   -- sinatra gem
+3) A properly filled out config.yml file
+
+To start the tracker, simple run
+`ruby tracker.rb [-p port] [-e environment]`
+where values in braces are optional, port is the port to run on (defaults to 4567) and environment is either production or development (defaults to development).

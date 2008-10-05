@@ -1,0 +1,8 @@
+--- 
+:log_announces: true
+:announce_int: 1800
+:mysql: 
+  :host: host
+  :user: user
+  :pass: pass
+  :database: database
