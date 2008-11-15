@@ -12,7 +12,7 @@ require 'rubygems'
 require 'bencode'
 # Require the mysql gem
 require 'mysql'
-# Require the camping gem
+# Require the sinatra gem
 require 'sinatra'
 # Require YAML to parse config files
 require 'yaml'
@@ -55,7 +55,6 @@ get '/:passkey/announce' do
     peer_list = []
     peer_list_compact = ''
     peers.each_hash do |peer| # Go through each peer
-      current_peer = peer if peer['UserID'] == user['ID']
       if @compact == '1' # Compact Mode
         ip = peer['IP'].split('.').collect { |octet| octet.to_i }.pack('C*')
         port = [peer['Port'].to_i].pack('n*')
@@ -83,18 +82,17 @@ get '/:passkey/announce' do
       $db.query( "UPDATE torrents SET #{@left.to_i > 0 ? 'Leechers = Leechers + 1' : 'Seeders = Seeders + 1'} WHERE ID = #{torrent['ID']}" )
     when 'stopped'
       # Update Seeder / Leecher count for torrent, and update snatched list with final upload / download counts, then delete the user from the torrents peerlist
-      $db.query( "UPDATE tracker_snatches AS s, torrents AS t SET #{@left.to_i > 0 ? 'Leechers = Leechers - 1' : 'Seeders = Seeders - 1'}, s.Uploaded = #{escape @uploaded}, s.Downloaded = #{escape @downloaded} WHERE s.UserID = '#{escape @peer_id}' AND t.ID = s.TorrentID" ) 
-      $db.query( "DELETE FROM tracker_peers WHERE PeerID = '#{escape @peer_id}'" )
+      $db.query( "UPDATE torrents SET #{@left.to_i > 0 ? 'Leechers = Leechers - 1' : 'Seeders = Seeders - 1'} WHERE ID = #{torrent['ID']}" )
+      $db.query( "INSERT INTO tracker_snatches (UserID, TorrentID, IP, Port, Uploaded, Downloaded, PeerID) VALUES (#{user['ID']}, #{torrent['ID']}, '#{escape request.env['REMOTE_ADDR']}', #{escape @port}, #{escape @uploaded}, #{escape @downloaded}, '#{escape @peer_id}')" )
+      $db.query( "DELETE FROM tracker_peers WHERE PeerID = '#{escape @peer_id}' AND TorrentID = #{torrent['ID']}" )
     when 'completed'
-      # Add the snatch to the snatchlist, and update seeder / leecher counts
-      $db.query( "INSERT INTO tracker_snatches (UserID, TorrentID, TrackerID, IP, Port, Uploaded, Downloaded, PeerID) VALUES (#{user['ID']}, #{torrent['ID']}, #{escape @trackerid}, '#{escape request.env['REMOTE_ADDR']}', #{escape @port}, #{escape @uploaded}, #{escape @downloaded}, '#{escape @peer_id}')" )
       $db.query( "UPDATE torrents SET Seeders = Seeders + 1, Leechers = Leechers - 1, Snatched = Snatched + 1 WHERE ID = #{torrent['ID']}" )
     end
     
     # Update uploaded / downloaded / left amounts
     # This is two queries because we need the old p.Uploaded value to find out what they've uploaded since the last announce, and when it's one query, it uses the current uploaded amount, which is useless since @uploaded - @uploaded = 0, and the user's ratio would never update
-    $db.query( "UPDATE users_main AS u, tracker_peers AS p SET u.Uploaded=u.Uploaded+#{escape @uploaded}-p.Uploaded, u.Downloaded=u.Downloaded+#{escape @downloaded}-p.Downloaded WHERE (p.PeerID='#{escape @peer_id}' AND u.ID=p.UserID)" )
-    $db.query( "UPDATE tracker_peers AS p SET p.Uploaded = #{escape @uploaded}, p.Downloaded = #{escape @downloaded}, p.Left = #{escape @left} WHERE p.PeerID = '#{escape @peer_id}'" )
+    $db.query( "UPDATE users_main AS u, tracker_peers AS p SET u.Uploaded=u.Uploaded+#{escape @uploaded}-p.Uploaded, u.Downloaded=u.Downloaded+#{escape @downloaded}-p.Downloaded WHERE (p.PeerID='#{escape @peer_id}' AND u.ID=#{user['ID']} AND p.TorrentID=#{torrent['ID']})" )
+    $db.query( "UPDATE tracker_peers AS p SET p.Uploaded = #{escape @uploaded}, p.Downloaded = #{escape @downloaded}, p.Left = #{escape @left} WHERE p.PeerID = '#{escape @peer_id}' AND TorrentID = #{torrent['ID']}" )
     # End database update
     
     @resp.bencode
