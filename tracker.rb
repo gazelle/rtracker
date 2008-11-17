@@ -85,7 +85,7 @@ get '/:passkey/announce' do
       $db.query( "UPDATE torrents SET Seeders = Seeders + 1, Leechers = Leechers - 1, Snatched = Snatched + 1 WHERE ID = #{torrent['ID']}" )
     when 'stopped'
       # Update Seeder / Leecher count for torrent, and update snatched list with final upload / download counts, then delete the user from the torrents peerlist
-      $db.query( "UPDATE torrents AS t, tracker_snatches AS s SET #{@left.to_i > 0 ? 't.Leechers = t.Leechers - 1' : 't.Seeders = t.Seeders - 1'}, s.Uploaded = #{escape @uploaded}, s.Downloaded = #{escape @downloaded} WHERE t.ID = #{torrent['ID']} AND (s.UserID = #{user['ID'] AND s.TorrentID = #{torrent['ID']})" )
+      $db.query( "UPDATE torrents AS t, tracker_snatches AS s SET #{@left.to_i > 0 ? 't.Leechers = t.Leechers - 1' : 't.Seeders = t.Seeders - 1'}, s.Uploaded = #{escape @uploaded}, s.Downloaded = #{escape @downloaded} WHERE t.ID = #{torrent['ID']} AND (s.UserID = #{user['ID']} AND s.TorrentID = #{torrent['ID']})" )
       $db.query( "DELETE FROM tracker_peers WHERE PeerID = '#{escape @peer_id}' AND TorrentID = #{torrent['ID']}" )
     end
     
