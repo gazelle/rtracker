@@ -21,7 +21,11 @@ configure do
   # Load the config
   $config = YAML::load( open('config.yml') )
   # Connect to MySQL
-  $db = Mysql::new($config[:mysql][:host], $config[:mysql][:user], $config[:mysql][:pass], $config[:mysql][:database])
+  $db = Mysql::new($config[:mysql][:host], $config[:mysql][:user], $config[:mysql][:pass], $config[:mysql][:database]
+
+  whitelist = $db.query( "SELECT Peer_ID FROM whitelist" )
+  $whitelist = Array.new
+  whitelist.each_hash { |client| $whitelist << /#{client['Peer_ID']}/ } # Put a RegEx of each peerid into $whitelist
 end
 
 get '/:passkey/announce' do
@@ -36,6 +40,10 @@ get '/:passkey/announce' do
     @numwant ||= 50
     @event ||= 'none'
     
+    # Make sure client is whitelisted
+    whitelisted = $whitelist.map { |client| @peer_id =~ client }.include? 0
+    error "Your client is banned. Go to #{$config[:whitelist_url]}" unless whitelisted
+
     # Find our user
     user = $db.query( "SELECT um.ID, um.Enabled, um.can_leech, p.Level FROM users_main AS um LEFT JOIN permissions AS p ON um.PermissionID=p.ID WHERE torrent_pass = '#{escape(@passkey)}'" ).fetch_hash
     error "Account not found" if user.nil? or user['Enabled'] != '1'
@@ -67,9 +75,9 @@ get '/:passkey/announce' do
     end
     
     if @compact == '1' # Compact Mode
-      @resp = { 'interval' => $config[:announce_int], 'min interval' => 300, 'peers' => peer_list_compact }
+      @resp = { 'interval' => $config[:announce_int], 'min interval' => $config[:min_announce_int], 'peers' => peer_list_compact }
     else
-      @resp = { 'interval' => $config[:announce_int], 'min interval' => 300, 'peers' => peer_list }
+      @resp = { 'interval' => $config[:announce_int], 'min interval' => $config[:min_announce_int], 'peers' => peer_list }
     end
     # End peerlist generation
     
