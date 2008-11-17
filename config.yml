@@ -1,6 +1,8 @@
 --- 
 :log_announces: true
 :announce_int: 1800
+:min_announce_int: 300
+:whitelist_url: http://yoursite.com/whitelist.php
 :mysql: 
   :host: host
   :user: user
