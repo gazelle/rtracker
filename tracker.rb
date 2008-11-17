@@ -21,7 +21,7 @@ configure do
   # Load the config
   $config = YAML::load( open('config.yml') )
   # Connect to MySQL
-  $db = Mysql::new($config[:mysql][:host], $config[:mysql][:user], $config[:mysql][:pass], $config[:mysql][:database]
+  $db = Mysql::new($config[:mysql][:host], $config[:mysql][:user], $config[:mysql][:pass], $config[:mysql][:database])
 
   whitelist = $db.query( "SELECT Peer_ID FROM whitelist" )
   $whitelist = Array.new
