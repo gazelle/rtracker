@@ -34,7 +34,7 @@ get '/:passkey/announce' do
     required_params = ['passkey', 'info_hash', 'peer_id', 'port', 'uploaded', 'downloaded', 'left']
     optional_params = ['event', 'compact', 'no_peer_id', 'ip', 'numwant']
     (required_params + optional_params).each do |param|
-      error "Bad Announce" if params[param].nil? or params[param].empty? and required_params.include?(param) unless param == 'trackerid' and params['event'] == 'started' # Only raise errors on required params and don't raise an error about missing torrentid if event == started
+      error "Bad Announce" if (params[param].nil? or params[param].empty?) and required_params.include?(param)
       self.instance_variable_set("@" + param, params[param])
     end
     @numwant ||= 50
