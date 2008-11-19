@@ -4,10 +4,16 @@ To install, make sure you have
 1) Ruby (I use 1.8.6, although any version should do)
 2) Rubygems
    -- MySQL gem
-   -- bencode gem
+   -- memcache gem
+   -- bencode gem ( http://github.com/dasch/ruby-bencode-bindings/tree/master )
    -- sinatra gem
+   -- Daemons gem
 3) A properly filled out config.yml file
 
-To start the tracker, simple run
-`ruby tracker.rb [-p port] [-e environment]`
-where values in braces are optional, port is the port to run on (defaults to 4567) and environment is either production or development (defaults to development).
+The tracker uses Rack, so you can use any server that supports Rack.
+To start it using Sinatra (Thin / Mongrel), `ruby tracker.rb [-p port] [-e environment]; ruby schedule.rb`
+To use Apache with Phusion Passenger ( http://www.modrails.com/ ), add this to your config file
+<VirtualHost tracker.domain.tld:80>
+  ServerName tracker.domain.tld
+  DocumentRoot /path/to/rtracker/public
+</VirtualHost>
