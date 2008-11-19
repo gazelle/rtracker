@@ -2,9 +2,13 @@
 :log_announces: true
 :announce_int: 1800
 :min_announce_int: 300
+:user_update_int: 20
 :whitelist_url: http://yoursite.com/whitelist.php
 :mysql: 
   :host: host
   :user: user
   :pass: pass
   :database: database
+:cache:
+  :host: host
+  :namespace: rtracker
