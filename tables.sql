@@ -56,16 +56,3 @@ CREATE TABLE `tracker_snatches` (
    `Time` timestamp,
    PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8;
-
---
--- Table structure for table `whitelist`
---
-
-DROP TABLE IF EXISTS `whitelist`;
-CREATE TABLE `whitelist` (
-  `ID` int(10) unsigned NOT NULL auto_increment,
-  `Client` varchar(100) character set latin1 default NULL,
-  `Peer_ID` varchar(20) character set latin1 default NULL,
-  `Notes` varchar(200) character set latin1 default NULL,
-  PRIMARY KEY  (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
